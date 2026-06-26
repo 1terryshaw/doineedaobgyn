@@ -74,8 +74,9 @@ const verticalConfig = {
   // Parent physician hub first, then women's-mental-health-adjacent empire
   // directories. Rendered as external cards (target=_blank rel=noopener) on the homepage.
   relatedSpecialists: [
-    { label: "All Physicians", description: "The full physician directory — every medical specialty", url: "https://doineedaphysician.com" },
-    { label: "Therapist", description: "Women's and family mental health, counseling, and talk therapy", url: "https://doineedatherapist.org" },
+    { label: "Therapist", description: "Women's mental health, postpartum support, and counseling", url: "https://doineedatherapist.org" },
+    { label: "Pediatrician", description: "Newborn and child care after pregnancy", url: "https://doineedapediatrician.com" },
+    { label: "Massage Therapist", description: "Pregnancy support and postpartum recovery", url: "https://doineedamassagetherapist.com" },
   ],
 
   // === NATIONAL REGIONS ===
