@@ -8,7 +8,7 @@ const verticalConfig = {
   entity: "OB/GYN",
   entityPlural: "OB/GYNs",
   slug: "doineedaobgyn",
-  domain: "www.doineedaobgyn.com",
+  domain: "doineedaobgyn.com",
   displayDomain: "doineedaobgyn.com",
   supportEmail: "hello@doineedaobgyn.com",
   primaryColor: "#6B8F71",
