@@ -1,5 +1,4 @@
 const verticalConfig = {
-  registrySlug: "obgyn", // TDL #684 Phase 0.1b — AEO crawler middleware vertical_slug
   inquiryNoEmailPolicy: "hide", // TDL #455 (empire default)
   // === BRANDING ===
   name: "DoINeedAOBGYN.com",
