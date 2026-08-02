@@ -6,8 +6,13 @@ import { getCityBySlug, CITIES, PROVINCES } from "@/lib/constants";
 import ListingCard from "@/components/ListingCard";
 import verticalConfig from "@/lib/vertical.config";
 import ShareButtons from "@/components/pizzazz/ShareButtons";
+import { localizeFaqs } from "@/lib/seo";
+import FaqSection from "@/components/FaqSection";
 
 export const dynamic = "force-dynamic";
+
+const MEDICAL_DISCLAIMER =
+  "The information here is for educational purposes only and is not medical advice. Consult a licensed healthcare provider about your specific situation.";
 
 interface Props {
   params: Promise<{ region: string; city: string }>;
@@ -92,6 +97,12 @@ export default async function CityPage({ params }: Props) {
           ))}
         </div>
       )}
+
+      {/* FAQ localized to the city name; medical disclaimer above accordion. */}
+      <FaqSection
+        faqs={localizeFaqs(verticalConfig.faqs, cityName)}
+        disclaimer={MEDICAL_DISCLAIMER}
+      />
     </div>
   );
 }
