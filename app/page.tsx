@@ -158,12 +158,9 @@ export default async function HomePage() {
           vertical="obgyn"
           subtitle="Find an OB-GYN in your area"
           accentTextClass="text-[#3B82F6] hover:text-[#306bca]"
-        />
-        {regionSections.length > 0 && (
-          <div className="max-w-7xl mx-auto px-4 pb-4">
-            <RegionHub sections={regionSections} />
-          </div>
-        )}
+        >
+          {regionSections.length > 0 ? <RegionHub sections={regionSections} /> : null}
+        </BrowseByArea>
       </FadeIn>
 
     </>
