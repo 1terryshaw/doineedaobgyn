@@ -3,6 +3,22 @@ import { createClient } from "@supabase/supabase-js";
 import verticalConfig from "@/lib/vertical.config";
 import { applyAddressVisibility } from "@/lib/address-visibility";
 
+// K216 — Next's prerender bail-out is NOT a DB fault and must not be laundered into one.
+// A statically prerendered route raises DynamicServerError through the no-store client;
+// supabase-js CATCHES it and hands it back as a normal `{ error }`, so throwing a generic
+// Error over it turns the BUILD RED. Re-emit it carrying Next's own digest so Next
+// recognises its bail-out and renders the route dynamically. Donor v16.13/v16.14 canon.
+const PRERENDER_BAILOUT = /Dynamic server usage|DYNAMIC_SERVER_USAGE/;
+
+function rethrowPrerenderBailout(error: unknown): void {
+  const message = String((error as { message?: unknown })?.message ?? "");
+  if (!PRERENDER_BAILOUT.test(message)) return;
+  const bail = new Error(message) as Error & { digest?: string };
+  bail.digest = "DYNAMIC_SERVER_USAGE";
+  throw bail;
+}
+
+
 // BUG-S1 (audit 2026-07-02): PostgREST's .or() grammar treats , ( ) as structural,
 // so a raw search term containing them fails the whole filter with PGRST100 and the
 // page renders 0 results. Values must be double-quoted, with embedded \ and "
@@ -225,8 +241,15 @@ export async function getFilteredListings(filters: ListingFilters): Promise<List
 
   const { data, error } = await query.range(from, to);
   if (error) {
+    // FAIL-CLOSED (C2, getlistings-failclosed-fan-v1 2026-09-09). This is the /directory
+    // grid reader and it is BESPOKE here — it does not go through paginateAll, so the
+    // Tranche A argument flip never reached it. Returning [] made a DB fault
+    // indistinguishable from an empty result set: /directory served a 200 with no cards.
+    rethrowPrerenderBailout(error);
     console.error("getFilteredListings error:", error);
-    return [];
+    throw new Error(
+      `getFilteredListings failed: ${(error as { message?: string })?.message ?? "unknown"}`
+    );
   }
   return data || [];
 }
@@ -251,8 +274,16 @@ export async function getRegionCounts(): Promise<RegionCount[]> {
     .from(`mv_${LISTINGS_TABLE}_regions`)
     .select("country, province_state, n");
   if (error) {
+    // FAIL-CLOSED (C2, getlistings-failclosed-fan-v1 2026-09-09). This returned the
+    // empty/zero value, which made a DB fault indistinguishable from a genuinely
+    // empty hub: the page served a 200 saying "nothing here", or a zero-row gate
+    // above it 404ed a live hub and ISR cached that 404. Log and rethrow —
+    // legit-empty is the K200/K205 gate's job, never this reader's.
+    rethrowPrerenderBailout(error);
     console.error("getRegionCounts error:", error);
-    return _regionCountsCache?.data ?? [];
+    throw new Error(
+      `getRegionCounts failed: ${(error as { message?: string })?.message ?? "unknown"}`
+    );
   }
   const rows = (data || []).map((r) => ({
     country: String(r.country),
@@ -296,8 +327,16 @@ export async function getListingsByProvincePaged(
     .order("id", { ascending: true })
     .range(from, to);
   if (error) {
+    // FAIL-CLOSED (C2, getlistings-failclosed-fan-v1 2026-09-09). This returned the
+    // empty/zero value, which made a DB fault indistinguishable from a genuinely
+    // empty hub: the page served a 200 saying "nothing here", or a zero-row gate
+    // above it 404ed a live hub and ISR cached that 404. Log and rethrow —
+    // legit-empty is the K200/K205 gate's job, never this reader's.
+    rethrowPrerenderBailout(error);
     console.error(`getListingsByProvincePaged(${provinceCode}) error:`, error);
-    return [];
+    throw new Error(
+      `getListingsByProvincePaged failed: ${(error as { message?: string })?.message ?? "unknown"}`
+    );
   }
   return data || [];
 }
